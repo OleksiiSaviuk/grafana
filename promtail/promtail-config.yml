@@ -40,5 +40,6 @@ scrape_configs:
       container_name:
       image_id:
       container_id:
+      host: "{{ hostname }}"
   - output:
       source: output
