@@ -94,8 +94,8 @@ services:
       - /sys:/host/sys:ro
       - /:/rootfs:ro
     restart: unless-stopped
-    expose:
-      - 9100
+    ports:
+      - 9200:9100
     networks:
       grafana: null 
   
