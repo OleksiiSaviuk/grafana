@@ -24,6 +24,6 @@ scrape_configs:
       - targets: ['localhost:9090','cadvisor:8080', 'grafana:3000']
 
   - job_name: 'nodeexplorer'
-    scrape_interval: 15s
+    scrape_interval: 30s
     static_configs:
-      - targets: ['node-exporter:9100', 'localhost:9200']
+      - targets: ['node-exporter:9100']
