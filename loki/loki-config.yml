@@ -40,12 +40,16 @@ storage_config:
 compactor:
   working_directory: /loki/boltdb-shipper-compactor
   shared_store: filesystem
+  delete_request_cancel_period: 10m # don't wait 24h before processing the delete_request
+  retention_enabled: true # actually do the delete
+  retention_delete_delay: 2h # wait 2 hours before actually deleting stuff
 
 limits_config:
   reject_old_samples: true
   reject_old_samples_max_age: 168h
   ingestion_burst_size_mb: 16
   ingestion_rate_mb: 16
+  retention_period: 30d # Keep 30 days
 
 chunk_store_config:
   max_look_back_period: 0s

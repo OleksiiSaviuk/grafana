@@ -58,6 +58,8 @@ services:
     image: prom/prometheus:v2.37.8
     command:
       - --config.file=/etc/prometheus/prometheus.yml
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prom-data:/prometheus
