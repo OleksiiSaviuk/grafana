@@ -1,0 +1,15 @@
+apiVersion: 1
+datasources:
+  - name: Infinity
+    uid: infinity-postman-echo-basic-auth
+    type: yesoreyeram-infinity-datasource
+    basicAuth: true
+    basicAuthUser: 'ementor'
+    jsonData:
+      allowedHosts:
+        - 'https://nexus-dev.ementor.epm-rdua.projects.epam.com/service/rest/v1/blobstores'
+      auth_method: 'basicAuth'
+      tlsSkipVerify: true
+    secureJsonData:
+      basicAuthPassword: 'password'
+    editable: true

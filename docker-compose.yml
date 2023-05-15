@@ -8,7 +8,7 @@ services:
     container_name: grafana
     image: grafana/grafana:9.5.2
     environment:
-      GF_INSTALL_PLUGINS: "flant-statusmap-panel"
+      GF_INSTALL_PLUGINS: "yesoreyeram-infinity-datasource"
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/docker/cadvisor-exporter_rev1.json
     volumes:
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
