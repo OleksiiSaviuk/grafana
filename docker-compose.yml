@@ -1,4 +1,4 @@
-version: "3.4 "
+version: "3.3"
 
 networks:
   grafana: {}
@@ -8,8 +8,12 @@ services:
     container_name: grafana
     image: grafana/grafana:9.5.2
     environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_BASIC_ENABLED: "false"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
       GF_INSTALL_PLUGINS: "yesoreyeram-infinity-datasource"
-      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/docker/cadvisor-exporter_rev1.json
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/system/alarms-dashboard.json
     volumes:
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
@@ -17,7 +21,7 @@ services:
       - grafana-data:/var/lib/grafana
     restart: always
     ports:
-      - "80:3000"
+      - 80:3000
     networks:
       grafana: null
 
@@ -41,8 +45,8 @@ services:
 
   loki:
     container_name: loki
-    image: grafana/loki:2.3.0
-    command: 
+    image: grafana/loki:2.8.2
+    command:
       - -config.file=/etc/loki/loki-config.yml
     volumes:
       - ./loki/loki-config.yml:/etc/loki/loki-config.yml
@@ -52,16 +56,19 @@ services:
       - 3100:3100
     networks:
       grafana: null
-    
+
   prometheus:
     container_name: prometheus
-    image: prom/prometheus:v2.37.8
+    image: prom/prometheus:v2.44.0
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention.time=30d'
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts-node-exporter.yml:/etc/prometheus/alerts-node-exporter.yml:ro
+      - ./prometheus/alerts-google-cadvisor.yml:/etc/prometheus/alerts-google-cadvisor.yml:ro
+      - ./prometheus/alerts-loki.yml:/etc/prometheus/alerts-loki.yml:ro
       - prom-data:/prometheus
     restart: always
     ports:
@@ -71,15 +78,20 @@ services:
 
   promtail:
     container_name: promtail
-    image: grafana/promtail:2.3.0
+    image: grafana/promtail:latest
+    entrypoint: [ "/bin/sh","-c" ]
     command:
-      - -config.file=/etc/promtail/promtail-config.yml
+      - |
+        export HOSTNAME=$$(cat /etc/hostname)
+        /usr/bin/promtail -config.file=/etc/promtail/promtail-config.yml -client.external-labels=host=$$HOSTNAME
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro        
+      - /etc/hostname:/etc/hostname:ro
+      - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
     restart: always
     networks:
-      grafana: null  
+      grafana: null
 
   node-exporter:
     container_name: node-exporter
@@ -95,11 +107,36 @@ services:
       - /:/rootfs:ro
     restart: unless-stopped
     expose:
-      - 9200
+      - 9100
     networks:
-      grafana: null 
-  
+      grafana: null
+
+  alertmanager:
+    container_name: alertmanager
+    image: prom/alertmanager:latest
+    command: --config.file=/config/alertmanager.yml 
+    volumes:
+      - ./alertmanager/alertmanager.yml:/config/alertmanager.yml:ro
+      - alertmanager-data:/data
+    restart: always
+    ports:
+      - 9093:9093
+    networks:
+      grafana: null
+    
+  prom2teams:
+    container_name: prom2teams
+    image: idealista/prom2teams:latest
+    environment:
+      PROM2TEAMS_CONNECTOR: "https://webhook.office.com/webhookb2/f3aea8d5-cd06b62333f1"
+    restart: always
+    ports:
+      - 8089:8089
+    networks:
+      grafana: null
+
 volumes:
   grafana-data:
   prom-data:
   loki-data:
+  alertmanager-data:

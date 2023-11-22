@@ -1,0 +1,8 @@
+route:
+  receiver: 'teams' # default receiver
+  
+receivers:
+  - name: 'teams'
+    webhook_configs:
+      - url: "http://prom2teams:8089"
+        send_resolved: true
